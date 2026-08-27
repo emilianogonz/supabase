@@ -7,6 +7,16 @@ DASHBOARD_BASIC_AUTH="${DASHBOARD_USERNAME}:{SHA}${PASSWORD_HASH}"
 
 echo "Generating Envoy configuration..."
 
+# Log resolved host variables for debugging
+echo "DEBUG: Resolved HOST variables:"
+echo "  REST_HOST=${REST_HOST}"
+echo "  AUTH_HOST=${AUTH_HOST}"
+echo "  REALTIME_HOST=${REALTIME_HOST}"
+echo "  STORAGE_HOST=${STORAGE_HOST}"
+echo "  META_HOST=${META_HOST}"
+echo "  STUDIO_HOST=${STUDIO_HOST}"
+echo "  FUNCTIONS_HOST=${FUNCTIONS_HOST}"
+
 # Process the lds.yaml template with environment variables using sed
 # Using | as delimiter since JWT tokens contain /
 sed -e "s|\${ANON_KEY}|${ANON_KEY}|g" \
@@ -27,6 +37,10 @@ sed -e "s|\${AUTH_HOST}|${AUTH_HOST}|g" \
     -e "s|\${META_HOST}|${META_HOST}|g" \
     -e "s|\${STUDIO_HOST}|${STUDIO_HOST}|g" \
     /etc/envoy/cds.template.yaml > /etc/envoy/cds.yaml
+
+# Log the actual addresses used in the generated config
+echo "DEBUG: Generated cds.yaml cluster addresses:"
+grep -A 4 "address:" /etc/envoy/cds.yaml | head -20 || echo "Could not parse cds.yaml"
 
 if [ -n "$SUPABASE_SECRET_KEY" ] && \
    [ -n "$SUPABASE_PUBLISHABLE_KEY" ] && \
